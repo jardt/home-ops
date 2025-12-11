@@ -99,7 +99,7 @@ spec:
           nginx:
             image:
               repository: nginxinc/nginx-unprivileged
-              tag: 1.29.2-alpine@sha256:2cddd18b805962549f850a5f6f1f4b3ccb667343e3c6ba42e8ce6a6f7e389709
+              tag: 1.29.2-alpine@sha256:031d8c8ab79d2d171a2a383aa50a06f527791c05ba1aeae9ca05d7b9779caf8e
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
