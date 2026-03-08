@@ -23,7 +23,7 @@ spec:
           app:
             image:
               repository: docker.io/oryd/kratos
-              tag: v1.2.0
+              tag: v1.3.1
             envFrom:
               - secretRef:
                   name: goboden-kratos-secret
