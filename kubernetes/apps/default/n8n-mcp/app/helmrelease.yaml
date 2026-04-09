@@ -17,7 +17,7 @@ spec:
           app:
             image:
               repository: ghcr.io/czlonkowski/n8n-mcp
-              tag: 2.35.6@sha256:34b5e229c1d1af9b037d0caa2341563ec6cee84e4990081d3cd63775d458cdcf
+              tag: 2.47.6@sha256:4326ec0c6080901a3ce2ffba74afa9c4e59545fd34e4018b2a7d3d041bb3bc75
             env:
               TZ: ${TIMEZONE}
               MCP_MODE: http
