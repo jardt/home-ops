@@ -24,7 +24,7 @@ spec:
           vuetorrent:
             image:
               repository: docker.io/library/alpine
-              tag: 3.22
+              tag: 3.24
             command:
               - /bin/sh
               - -ec
@@ -41,7 +41,7 @@ spec:
           config:
             image:
               repository: docker.io/library/alpine
-              tag: 3.22
+              tag: 3.24
             command:
               - /bin/sh
               - -ec
