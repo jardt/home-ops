@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: &app n8n
+  name: &app vikunja
 spec:
   interval: 1h
   chartRef:
@@ -10,7 +10,7 @@ spec:
     name: app-template
   values:
     controllers:
-      n8n:
+      vikunja:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -20,37 +20,48 @@ spec:
               tag: 18.4@sha256:ebd9d30add17acdf935d73eb004758c7dfd9388aaa605fda70ad74378ab92aec
             envFrom: &envFrom
               - secretRef:
-                  name: *app
+                  name: vikunja
         containers:
           app:
             image:
-              repository: ghcr.io/n8n-io/n8n
-              tag: 2.30.3@sha256:4e9de05de2f87c34774d71a93dd9aca924adb930c4c7f2f7797b84fa93327be5
+              repository: docker.io/vikunja/vikunja
+              tag: 2.3.0@sha256:f6b80393c1998cd5cd0dc38d24762c59ab4c10000a6f1032ef5b554e262cab93
             env:
-              TZ: ${TIMEZONE}
-              GENERIC_TIMEZONE: ${TIMEZONE}
-              DB_TYPE: postgresdb
-              N8N_PROTOCOL: "https"
-              N8N_PORT: &port 8080
-              N8N_HOST: n8n.${SECRET_DOMAIN}
-              N8N_LOG_LEVEL: info
-              N8N_LOG_OUTPUT: console
-              N8N_TRUST_PROXY: true
-              N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: false
-              EXECUTIONS_DATA_PRUNE: true
-              EXECUTIONS_DATA_MAX_AGE: 7
-              EXECUTIONS_DATA_PRUNE_MAX_COUNT: 50000
+              TZ: Europe/Oslo
+              VIKUNJA_AUTH_LOCAL_ENABLED: true
+              VIKUNJA_DATABASE_TYPE: postgres
+              VIKUNJA_DATABASE_SSLMODE: disable
+              VIKUNJA_DEFAULTSETTINGS_DISCOVERABLE_BY_EMAIL: true
+              VIKUNJA_DEFAULTSETTINGS_DISCOVERABLE_BY_NAME: true
+              VIKUNJA_DEFAULTSETTINGS_WEEK_START: 1
+              VIKUNJA_MAILER_ENABLED: false
+              VIKUNJA_SERVICE_ENABLEREGISTRATION: false
+              VIKUNJA_SERVICE_PUBLICURL: https://todo.${SECRET_DOMAIN}
+              VIKUNJA_SERVICE_TIMEZONE: Europe/Oslo
             envFrom: *envFrom
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/info
+                    port: &port 3456
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 5m
-                memory: 128Mi
+                cpu: 25m
+                memory: 256Mi
               limits:
-                memory: 2Gi
+                memory: 750Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -58,6 +69,7 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile: { type: RuntimeDefault }
     service:
       app:
         controller: *app
@@ -66,7 +78,7 @@ spec:
             port: *port
     route:
       app:
-        hostnames: ["n8n.${SECRET_DOMAIN}"]
+        hostnames: ["todo.${SECRET_DOMAIN}"]
         parentRefs:
           - name: internal
             namespace: kube-system
@@ -79,4 +91,8 @@ spec:
       data:
         existingClaim: *app
         globalMounts:
-          - path: /home/node/.n8n
+          - path: /app/vikunja/files
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
